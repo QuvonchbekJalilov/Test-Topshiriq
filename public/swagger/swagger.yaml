@@ -1,0 +1,600 @@
+swagger: "2.0"
+info:
+  description: Authentication and User Management APIs
+  version: 1.0.0
+  title: Test Topshiriq
+basePath: /api/
+tags:
+  - name: Authentication
+    description: APIs for user authentication
+  - name: User
+    description: APIs for managing user profiles
+  - name: Brand
+    description: APIs for managing brands
+  - name: Get Information
+    description: API for getting information
+  - name: Branch
+    description: API for managing branches
+  
+securityDefinitions:
+  BearerAuth:
+    type: apiKey
+    name: Authorization
+    in: header
+paths:
+  /login:
+    post:
+      tags:
+        - Authentication
+      summary: Login
+      description: Login with phone number and password to get authentication token
+      operationId: login
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: User credentials
+          required: true
+          schema:
+            type: object
+            properties:
+              phone_number:
+                type: string
+              password:
+                type: string
+                format: password
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+        "422":
+          description: Invalid credentials
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+
+  /register:
+    post:
+      tags:
+        - Authentication
+      summary: Register
+      description: Register with phone number and password to get authentication token
+      operationId: register
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: User registration data
+          required: true
+          schema:
+            type: object
+            properties:
+              phone_number:
+                type: string
+              password:
+                type: string
+                format: password
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+
+  /logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout
+      description: Logout to invalidate the current access token
+      operationId: logout
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+
+  /users:
+    get:
+      tags:
+        - User
+      summary: Get Current User
+      description: Returns the profile of the currently authenticated user
+      operationId: index
+      security:
+        - BearerAuth: [] 
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            $ref: "#/definitions/UserResource"
+      produces:
+        - application/json
+
+    post:
+      tags:
+        - User
+      summary: Create User Profile
+      description: Creates a new profile for the currently authenticated user
+      operationId: store
+      security:
+        - BearerAuth: [] 
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - in: formData
+          name: first_name
+          type: string
+          required: true
+          description: The first name of the user
+        - in: formData
+          name: last_name
+          type: string
+          required: true
+          description: The last name of the user
+        - in: formData
+          name: photo
+          type: file
+          required: false
+          description: The photo of the user
+      responses:
+        "200":
+          description: Successful operation
+        "422":
+          description: Unprocessable Entity
+
+  /users/{id}:
+    get:
+      tags:
+        - User
+      summary: Get User Profile by ID
+      description: Returns the profile of a user by their ID
+      operationId: show
+      security:
+        - BearerAuth: [] 
+      parameters:
+        - in: path
+          name: id
+          description: ID of the user to retrieve
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            $ref: "#/definitions/UserResource"
+        "404":
+          description: User profile not found
+
+    put:
+      tags:
+        - User
+      summary: Update User Profile
+      description: Updates the profile of a user by their ID
+      operationId: update
+      security:
+        - BearerAuth: [] 
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: id
+          description: ID of the user to update
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Updated user profile data
+          required: true
+          schema:
+            type: object
+            properties:
+              first_name:
+                type: string
+                description: First name of the user
+              last_name:
+                type: string
+                description: Last name of the user
+              photo:
+                type: string
+                format: base64
+                description: Base64 encoded string representing the user's photo
+      responses:
+        "200":
+          description: Successful operation
+        "404":
+          description: User profile not found
+
+    delete:
+      tags:
+        - User
+      summary: Delete User Profile
+      description: Deletes the profile of a user by their ID
+      operationId: destroy
+      security:
+        - BearerAuth: [] 
+      parameters:
+        - in: path
+          name: id
+          description: ID of the user to delete
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Successful operation
+        "404":
+          description: User profile not found
+
+  /brands:
+    get:
+      tags:
+        - Brand
+      summary: Get All Brands
+      description: Returns a list of all brands
+      operationId: index
+      security:
+        - BearerAuth: [] 
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Brand"
+    post:
+      tags:
+        - Brand
+      summary: Create a Brand
+      description: Creates a new brand
+      operationId: store
+      security:
+        - BearerAuth: [] 
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - in: formData
+          name: name
+          type: string
+          required: true
+          description: The name of the brand
+        - in: formData
+          name: logo
+          type: file
+          required: true
+          description: The logo image of the brand
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            $ref: "#/definitions/Brand"
+  /brands/{id}:
+    get:
+      tags:
+        - Brand
+      summary: Get Brand by ID
+      description: Returns a brand by its ID
+      operationId: show
+      security:
+        - BearerAuth: [] 
+      parameters:
+        - in: path
+          name: id
+          type: string
+          required: true
+          description: The ID of the brand to retrieve
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            $ref: "#/definitions/Brand"
+    put:
+      tags:
+        - Brand
+      summary: Update Brand
+      description: Updates a brand by its ID
+      operationId: update
+      security:
+        - BearerAuth: [] 
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: id
+          type: string
+          required: true
+          description: The ID of the brand to update
+        - in: formData
+          name: name
+          type: string
+          required: true
+          description: The new name of the brand
+        - in: formData
+          name: logo
+          type: file
+          required: false
+          description: The new logo image of the brand
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            $ref: "#/definitions/Brand"
+    delete:
+      tags:
+        - Brand
+      summary: Delete Brand
+      description: Deletes a brand by its ID
+      operationId: destroy
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          type: string
+          required: true
+          description: The ID of the brand to delete
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Successful operation
+
+
+  /getinfo:
+    get:
+      tags:
+        - Get Information
+      summary: Get Branch Information
+      description: Retrieves branch information including the region name, brand name, and branch count
+      operationId: getinfo
+      security:
+        - BearerAuth: []  
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Successful operation
+          schema:
+            type: array
+            items:
+              type: string
+              description: Branch information containing region name, brand name, and branch count
+  /branches:
+    get:
+      tags:
+        - Branch
+      summary: Get All Branches
+      description: Returns a list of all branches
+      operationId: index
+      security:
+        - BearerAuth: []
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Successful operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Branch'
+    post:
+      tags:
+        - Branch
+      summary: Create a Branch
+      description: Creates a new branch
+      operationId: store
+      security:
+        - BearerAuth: []
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - in: formData
+          name: brand_id
+          description: The ID of the brand
+          type: integer
+          required: true
+        - in: formData
+          name: name
+          description: The name of the branch
+          type: string
+          required: true
+        - in: formData
+          name: region_id
+          description: The ID of the region
+          type: integer
+          required: true
+        - in: formData
+          name: district_id
+          description: The ID of the district
+          type: integer
+          required: true
+        - in: formData
+          name: images
+          description: Images of the branch
+          type: array
+          items:
+            type: file
+      responses:
+        '200':
+          description: Successful operation
+          schema:
+            $ref: '#/definitions/Branch'
+  /branches/{id}:
+    get:
+      tags:
+        - Branch
+      summary: Get Branch by ID
+      description: Returns a branch by its ID
+      operationId: show
+      security:
+        - BearerAuth: []
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: id
+          type: string
+          required: true
+          description: The ID of the branch to retrieve
+      responses:
+        '200':
+          description: Successful operation
+          schema:
+            $ref: '#/definitions/Branch'
+    put:
+      tags:
+        - Branch
+      summary: Update Branch
+      description: Updates a branch by its ID
+      operationId: update
+      security:
+        - BearerAuth: []
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: id
+          type: string
+          required: true
+          description: The ID of the branch to update
+        - in: formData
+          name: brand_id
+          description: The ID of the brand
+          type: integer
+          required: true
+        - in: formData
+          name: name
+          description: The new name of the branch
+          type: string
+        - in: formData
+          name: region_id
+          description: The ID of the region
+          type: integer
+          required: true
+        - in: formData
+          name: district_id
+          description: The ID of the district
+          type: integer
+          required: true
+        - in: formData
+          name: images
+          description: Updated images of the branch
+          type: file
+      responses:
+        '200':
+          description: Successful operation
+          schema:
+            $ref: '#/definitions/Branch'
+    delete:
+      tags:
+        - Branch
+      summary: Delete Branch
+      description: Deletes a branch by its ID
+      operationId: destroy
+      security:
+        - BearerAuth: []
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: id
+          type: string
+          required: true
+          description: The ID of the branch to delete
+      responses:
+        '200':
+          description: Successful operation
+
+
+  
+definitions:
+  Brand:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      name:
+        type: string
+      logo:
+        type: string
+
+  UserResource:
+    type: object
+    properties:
+      id:
+        type: integer
+      first_name:
+        type: string
+      last_name:
+        type: string
+      photo:
+        type: string
+    required:
+      - id
+  UserStoreRequest:
+    type: object
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      photo:
+        type: string
+    required:
+      - first_name
+      - last_name
+  Branch:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      brand_id:
+        type: integer
+      name:
+        type: string
+      region_id:
+        type: integer
+      district_id:
+        type: integer
+      images:
+        type: array
+        items:
+          type: string
